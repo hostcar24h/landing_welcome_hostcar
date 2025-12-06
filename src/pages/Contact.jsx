@@ -2,6 +2,46 @@ import { useState } from "react";
 
 export default function Contact() {
   const [status, setStatus] = useState("");
+  const [formData, setFormData] = useState({
+    nombre: "",
+    email: "",
+    mensaje: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus("loading");
+
+    try {
+      const response = await fetch(
+        "http://localhost:4004/apibusiness/emails/contact",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error en el envío");
+      }
+
+      setStatus("success");
+      setFormData({ nombre: "", email: "", mensaje: "" });
+    } catch (error) {
+      console.error(error);
+      setStatus("error");
+    }
+  };
 
   return (
     <div className="pt-28 pb-16 px-6 max-w-4xl mx-auto">
@@ -18,32 +58,19 @@ export default function Contact() {
       <div className="grid md:grid-cols-2 gap-12">
         {/* FORMULARIO */}
         <form
-          action="https://formspree.io/f/mzzndeal"
-          method="POST"
+          onSubmit={handleSubmit}
           className="bg-white shadow-lg rounded-xl p-8 border border-gray-100"
-          onSubmit={() => setStatus("success")}
         >
-          {/* OPCIONAL: REDIRECCIÓN */}
-          <input
-            type="hidden"
-            name="_redirect"
-            value="https://hostcar.co/contacto/gracias"
-          />
-
-          <input
-            type="hidden"
-            name="_subject"
-            value="Nuevo mensaje desde HostCar24H 🚗💨"
-          />
-
           <label className="block mb-4">
             <span className="text-sm font-semibold text-[#0A1B3B]">
               Nombre completo
             </span>
             <input
               type="text"
-              name="Nombre"
+              name="name"
               required
+              value={formData.name}
+              onChange={handleChange}
               className="mt-2 w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-light-blue outline-none"
             />
           </label>
@@ -56,6 +83,21 @@ export default function Contact() {
               type="email"
               name="email"
               required
+              value={formData.email}
+              onChange={handleChange}
+              className="mt-2 w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-light-blue outline-none"
+            />
+          </label>
+          <label className="block mb-4">
+            <span className="text-sm font-semibold text-[#0A1B3B]">
+              Numero celular
+            </span>
+            <input
+              type="phone"
+              name="phone"
+              required
+              value={formData.phone}
+              onChange={handleChange}
               className="mt-2 w-full p-3 border rounded-lg bg-gray-50 focus:ring-2 focus:ring-light-blue outline-none"
             />
           </label>
@@ -65,17 +107,29 @@ export default function Contact() {
               Mensaje
             </span>
             <textarea
-              name="Mensaje"
+              name="message"
               rows="5"
               required
+              value={formData.message}
+              onChange={handleChange}
               className="mt-2 w-full p-3 border rounded-lg bg-gray-50 resize-none focus:ring-2 focus:ring-light-blue outline-none"
             ></textarea>
           </label>
 
           {/* STATUS */}
+          {status === "loading" && (
+            <p className="text-blue-600 text-sm mb-2">Enviando tu mensaje...</p>
+          )}
+
           {status === "success" && (
             <p className="text-green-600 text-sm mb-2">
-              Tu mensaje se está enviando...
+              ¡Mensaje enviado con éxito! Te contactaremos pronto.
+            </p>
+          )}
+
+          {status === "error" && (
+            <p className="text-red-600 text-sm mb-2">
+              Ocurrió un error. Intenta nuevamente.
             </p>
           )}
 
@@ -115,7 +169,7 @@ export default function Contact() {
 
             <p className="flex items-center gap-3 text-gray-800">
               <i className="ri-mail-fill text-light-blue text-xl"></i>
-              hostcar24h@gmail.com
+              reservas@hostcar24h.com
             </p>
           </div>
         </div>
